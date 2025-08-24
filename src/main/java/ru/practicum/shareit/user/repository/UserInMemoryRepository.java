@@ -43,7 +43,7 @@ public class UserInMemoryRepository implements UserRepository {
         User user = UserMapper.toUser(getUserById(userId).orElseThrow(
                 () -> new NotFoundException(String.format("Пользователь с id - %d не найден.", userId))));
 
-        if (userDTO.getName() != null && !userDTO.getName().isBlank()){
+        if (userDTO.getName() != null && !userDTO.getName().isBlank()) {
             user.setName(userDTO.getName());
         }
 
