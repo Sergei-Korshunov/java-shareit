@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import ru.practicum.shareit.user.dto.UserDTO;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
 
@@ -18,7 +19,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService userService) {

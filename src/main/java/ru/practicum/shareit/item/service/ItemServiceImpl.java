@@ -1,7 +1,7 @@
-package ru.practicum.shareit.item.repository;
+package ru.practicum.shareit.item.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import ru.practicum.shareit.exception.CoincidenceException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -11,20 +11,21 @@ import ru.practicum.shareit.item.mappers.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mappers.UserMapper;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository("itemInMemory")
-public class ItemInMemoryRepository implements ItemRepository {
-    private UserRepository userRepository;
+@Service
+public class ItemServiceImpl implements ItemService {
+
+    private final UserService userService;
     private final Map<Long, Item> items = new HashMap<>();
     private long itemsCount = 0;
 
     @Autowired
-    public ItemInMemoryRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public ItemServiceImpl(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
@@ -43,18 +44,13 @@ public class ItemInMemoryRepository implements ItemRepository {
     }
 
     private User getUser(long userId) {
-        return UserMapper.toUser(
-                userRepository.getUserById(userId).orElseThrow(
-                        () -> new NotFoundException(String.format("Пользователь с id - %d не найден.", userId)))
-        );
+        return UserMapper.toUser(userService.getUserById(userId));
     }
 
     @Override
     public ItemUpdate updateItem(long userId, long itemId, ItemUpdate itemUpdate) {
-        Item item = ItemMapper.toItem(
-                getItemById(itemId).orElseThrow(
-                        () -> new NotFoundException(String.format("Предмет с id - %d не найден", itemId)))
-        );
+        Item item = ItemMapper.toItem(getItemByIdWithOptional(itemId));
+        getUser(userId);
 
         if (item.getOwner().getId() != userId) {
             throw new CoincidenceException(
@@ -81,8 +77,13 @@ public class ItemInMemoryRepository implements ItemRepository {
     }
 
     @Override
-    public Optional<ItemDTO> getItemById(long itemId) {
-        return Optional.ofNullable(ItemMapper.toItemDTO(items.get(itemId)));
+    public ItemDTO getItemById(long itemId) {
+        return getItemByIdWithOptional(itemId);
+    }
+
+    protected ItemDTO getItemByIdWithOptional(long itemId) {
+        return Optional.ofNullable(ItemMapper.toItemDTO(items.get(itemId))).orElseThrow(
+                () -> new NotFoundException(String.format("Предмет с указанным id - %d не найден.", itemId)));
     }
 
     @Override
@@ -96,10 +97,14 @@ public class ItemInMemoryRepository implements ItemRepository {
 
     @Override
     public Collection<ItemDTO> search(String searchText) {
+        if (searchText == null || searchText.isBlank())
+            return Collections.emptyList();
+
+        String searchTextLC = searchText.toLowerCase(Locale.ROOT);
+
         return items.values().stream()
                 .filter(Item::getAvailable)
                 .filter(item -> {
-                    String searchTextLC = searchText.toLowerCase(Locale.ROOT);
                     String nameLC = item.getName().toLowerCase(Locale.ROOT);
                     String descriptionLC = item.getDescription().toLowerCase(Locale.ROOT);
 

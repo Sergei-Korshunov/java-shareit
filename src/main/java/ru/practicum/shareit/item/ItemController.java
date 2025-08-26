@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdate;
+import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
 
@@ -18,7 +19,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/items")
 public class ItemController {
-    private ItemService itemService;
+    private final ItemService itemService;
 
     @Autowired
     public ItemController(ItemService itemService) {

@@ -1,6 +1,6 @@
-package ru.practicum.shareit.user.repository;
+package ru.practicum.shareit.user.service;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import ru.practicum.shareit.exception.EmailException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -11,8 +11,8 @@ import ru.practicum.shareit.user.mappers.UserMapper;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository("userInMemoryRepository")
-public class UserInMemoryRepository implements UserRepository {
+@Service
+public class UserServiceImpl implements UserService {
     private Map<Long, User> users = new HashMap<>();
     private long countUser = 0;
 
@@ -40,8 +40,7 @@ public class UserInMemoryRepository implements UserRepository {
 
     @Override
     public UserDTO updateUser(UserDTO userDTO, long userId) {
-        User user = UserMapper.toUser(getUserById(userId).orElseThrow(
-                () -> new NotFoundException(String.format("Пользователь с id - %d не найден.", userId))));
+        User user = UserMapper.toUser(getUserByIdWithOptional(userId));
 
         if (userDTO.getName() != null && !userDTO.getName().isBlank()) {
             user.setName(userDTO.getName());
@@ -59,8 +58,13 @@ public class UserInMemoryRepository implements UserRepository {
     }
 
     @Override
-    public Optional<UserDTO> getUserById(long userId) {
-        return Optional.ofNullable(UserMapper.toUserDTO(users.get(userId)));
+    public UserDTO getUserById(long userId) {
+        return getUserByIdWithOptional(userId);
+    }
+
+    protected UserDTO getUserByIdWithOptional(long userId) {
+        return Optional.ofNullable(UserMapper.toUserDTO(users.get(userId))).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь с id - %d не найден.", userId)));
     }
 
     @Override

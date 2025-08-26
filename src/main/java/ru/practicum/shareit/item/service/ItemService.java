@@ -1,17 +1,19 @@
-package ru.practicum.shareit.item.repository;
+package ru.practicum.shareit.item.service;
+
+import org.springframework.stereotype.Component;
 
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdate;
 
 import java.util.Collection;
-import java.util.Optional;
 
-public interface ItemRepository {
+@Component
+public interface ItemService {
     ItemDTO addItem(long userId, ItemDTO itemDTO);
 
     ItemUpdate updateItem(long userId, long itemId, ItemUpdate itemUpdate);
 
-    Optional<ItemDTO> getItemById(long itemId);
+    ItemDTO getItemById(long itemId);
 
     Collection<ItemDTO> getListItems(long userId);
 
