@@ -16,5 +16,5 @@ public interface UserService {
 
     Collection<UserDTO> getListUsers();
 
-    boolean removeUser(long userId);
+    void removeUser(long userId);
 }

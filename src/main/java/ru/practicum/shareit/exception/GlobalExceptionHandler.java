@@ -11,7 +11,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @Slf4j
 @RestControllerAdvice
-public class ExceptionHandler {
+public class GlobalExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorMessage> constraintViolationException(ConstraintViolationException exception) {
@@ -47,6 +47,22 @@ public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(CoincidenceException.class)
     public ResponseEntity<ErrorMessage> coincidenceException(CoincidenceException exception) {
+        log.error(exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorMessage> validationException(ValidationException exception) {
+        log.error(exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(BookingException.class)
+    public ResponseEntity<ErrorMessage> bookingException(BookingException exception) {
         log.error(exception.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

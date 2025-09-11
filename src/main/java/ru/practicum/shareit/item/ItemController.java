@@ -4,8 +4,11 @@ import jakarta.validation.Valid;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import ru.practicum.shareit.item.comment.CommentDTO;
+import ru.practicum.shareit.item.comment.CommentService;
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdate;
 import ru.practicum.shareit.item.service.ItemService;
@@ -20,10 +23,12 @@ import java.util.Collection;
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
+    private final CommentService commentService;
 
     @Autowired
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemService itemService, CommentService commentService) {
         this.itemService = itemService;
+        this.commentService = commentService;
     }
 
     @PostMapping
@@ -48,8 +53,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDTO getItemById(@PathVariable long itemId) {
-        ItemDTO getItemById = itemService.getItemById(itemId);
+    public ItemDTO getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable long itemId) {
+        ItemDTO getItemById = itemService.getItemById(userId, itemId);
         log.info("Получен предмет с id - {} и данными -> {}", itemId, getItemById);
 
         return getItemById;
@@ -69,5 +74,16 @@ public class ItemController {
         log.info("Найдены предметы по поиску '{}', предметы -> {}", text, search);
 
         return search;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDTO createComment(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable Long itemId,
+            @RequestBody CommentDTO commentDto) {
+        CommentDTO createdComment = commentService.addComment(itemId, userId, commentDto);
+        log.info("Добавлен комментарий от пользователя по id - {} к предмету по id - {}", userId, itemId);
+
+        return createdComment;
     }
 }

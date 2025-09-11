@@ -3,8 +3,14 @@ package ru.practicum.shareit.item.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingTimeDTO;
 import ru.practicum.shareit.exception.CoincidenceException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.comment.Comment;
+import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdate;
 import ru.practicum.shareit.item.mappers.ItemMapper;
@@ -13,43 +19,58 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mappers.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ItemServiceImpl implements ItemService {
-
+    private final ItemRepository itemRepository;
     private final UserService userService;
-    private final Map<Long, Item> items = new HashMap<>();
-    private long itemsCount = 0;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Autowired
-    public ItemServiceImpl(UserService userService) {
+    public ItemServiceImpl(ItemRepository itemRepository, UserService userService, BookingRepository bookingRepository, CommentRepository commentRepository) {
+        this.itemRepository = itemRepository;
         this.userService = userService;
+        this.bookingRepository = bookingRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
     public ItemDTO addItem(long userId, ItemDTO itemDTO) {
         User user = getUser(userId);
 
-        itemDTO.setId(nextItemsId());
-        itemDTO.setOwner(user);
-        items.put(itemDTO.getId(), ItemMapper.toItem(itemDTO));
+        itemDTO.setOwnerId(user.getId());
+        Item savedItem = itemRepository.save(ItemMapper.toItem(itemDTO, user));
 
-        return itemDTO;
-    }
+        List<Comment> comments = (List<Comment>) commentRepository.findByItemId(savedItem.getId());
+        BookingTimeDTO lastBooking = getLastBooking(savedItem.getId());
+        BookingTimeDTO nextBooking = getNextBooking(savedItem.getId());
 
-    private long nextItemsId() {
-        return ++itemsCount;
+        return ItemMapper.toItemDTO(savedItem, userId, comments, lastBooking, nextBooking);
     }
 
     private User getUser(long userId) {
         return UserMapper.toUser(userService.getUserById(userId));
     }
 
+    private BookingTimeDTO getLastBooking(Long itemId) {
+        return bookingRepository.findFirstByItemIdAndEndTimeBeforeOrderByEndTimeDesc(itemId, LocalDateTime.now())
+                .map(booking -> new BookingTimeDTO(booking.getEndTime(), booking.getUser().getId()))
+                .orElse(null);
+    }
+
+    private BookingTimeDTO getNextBooking(Long itemId) {
+        return bookingRepository.findFirstByItemIdAndStartTimeAfterOrderByStartTimeAsc(itemId, LocalDateTime.now())
+                .map(booking -> new BookingTimeDTO(booking.getStartTime(), booking.getUser().getId()))
+                .orElse(null);
+    }
+
     @Override
     public ItemUpdate updateItem(long userId, long itemId, ItemUpdate itemUpdate) {
-        Item item = ItemMapper.toItem(getItemByIdWithOptional(itemId));
+        Item item = getItemByIdWithOptional(itemId);
         getUser(userId);
 
         if (item.getOwner().getId() != userId) {
@@ -73,26 +94,88 @@ public class ItemServiceImpl implements ItemService {
             item.setAvailable(itemUpdate.getAvailable());
         }
 
-        return ItemMapper.toItemUpdate(item);
+        Item updatedItem = itemRepository.save(item);
+
+        List<Comment> comments = (List<Comment>) commentRepository.findByItemId(updatedItem.getId());
+        BookingTimeDTO lastBooking = getLastBooking(updatedItem.getId());
+        BookingTimeDTO nextBooking = getNextBooking(updatedItem.getId());
+
+        return ItemMapper.toItemUpdate(item, comments, lastBooking, nextBooking);
     }
 
     @Override
-    public ItemDTO getItemById(long itemId) {
-        return getItemByIdWithOptional(itemId);
+    public ItemDTO getItemById(Long userId, long itemId) {
+        Item item = getItemByIdWithOptional(itemId);
+
+        Collection<Comment> comments = commentRepository.findByItemId(itemId);
+        BookingTimeDTO lastBookingTime = getLastBooking(itemId);
+        BookingTimeDTO nextBookingTime = getNextBooking(itemId);
+
+        return ItemMapper.toItemDTO(item, userId, comments, lastBookingTime, nextBookingTime);
     }
 
-    protected ItemDTO getItemByIdWithOptional(long itemId) {
-        return Optional.ofNullable(ItemMapper.toItemDTO(items.get(itemId))).orElseThrow(
+    protected Item getItemByIdWithOptional(long itemId) {
+        return itemRepository.findById(itemId).orElseThrow(
                 () -> new NotFoundException(String.format("Предмет с указанным id - %d не найден.", itemId)));
     }
 
     @Override
     public Collection<ItemDTO> getListItems(long userId) {
-        return items.values().stream()
-                .filter(item -> item.getOwner().getId() == userId)
-                .sorted(Comparator.comparing(Item::getId))
-                .map(ItemMapper::toItemDTO)
+        List<Item> items = (List<Item>) itemRepository.findByOwnerId(userId);
+
+        List<Long> itemIds = extractItemIds(items);
+        Map<Long, List<Booking>> bookingsByItem = getBookingsMap(itemIds);
+        Map<Long, List<Comment>> commentsByItem = getCommentsMap(itemIds);
+
+        return items.stream()
+                .map(item -> toItemDTOWithEnrichment(item, userId, bookingsByItem, commentsByItem))
                 .collect(Collectors.toList());
+    }
+
+    private List<Long> extractItemIds(List<Item> items) {
+        return items.stream().map(Item::getId).collect(Collectors.toList());
+    }
+
+    private Map<Long, List<Booking>> getBookingsMap(List<Long> itemIds) {
+        return bookingRepository.findApprovedBookingsForItems(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+    }
+
+    private Map<Long, List<Comment>> getCommentsMap(List<Long> itemIds) {
+        return commentRepository.findByItemIdIn(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(c -> c.getItem().getId()));
+    }
+
+    private ItemDTO toItemDTOWithEnrichment(Item item,
+                                            Long userId,
+                                            Map<Long, List<Booking>> bookingsMap,
+                                            Map<Long, List<Comment>> commentsMap) {
+        List<Booking> itemBookings = bookingsMap.getOrDefault(item.getId(), Collections.emptyList());
+
+        return ItemMapper.toItemDTO(
+                item,
+                userId,
+                commentsMap.getOrDefault(item.getId(), Collections.emptyList()),
+                findLastBooking(itemBookings),
+                findNextBooking(itemBookings));
+    }
+
+    private BookingTimeDTO findLastBooking(List<Booking> bookings) {
+        return bookings.stream()
+                .filter(booking -> booking.getEndTime().isBefore(LocalDateTime.now()))
+                .max(Comparator.comparing(Booking::getEndTime))
+                .map(booking -> new BookingTimeDTO(booking.getEndTime(), booking.getUser().getId()))
+                .orElse(null);
+    }
+
+    private BookingTimeDTO findNextBooking(List<Booking> bookings) {
+        return bookings.stream()
+                .filter(booking -> booking.getStartTime().isAfter(LocalDateTime.now()))
+                .min(Comparator.comparing(Booking::getStartTime))
+                .map(booking -> new BookingTimeDTO(booking.getStartTime(), booking.getUser().getId()))
+                .orElse(null);
     }
 
     @Override
@@ -100,17 +183,19 @@ public class ItemServiceImpl implements ItemService {
         if (searchText == null || searchText.isBlank())
             return Collections.emptyList();
 
-        String searchTextLC = searchText.toLowerCase(Locale.ROOT);
+        List<Item> items = itemRepository.searchAvailableItems(searchText);
 
-        return items.values().stream()
-                .filter(Item::getAvailable)
-                .filter(item -> {
-                    String nameLC = item.getName().toLowerCase(Locale.ROOT);
-                    String descriptionLC = item.getDescription().toLowerCase(Locale.ROOT);
+        if (items.isEmpty()) return Collections.emptyList();
 
-                    return nameLC.contains(searchTextLC) || descriptionLC.contains(searchTextLC);
-                })
-                .map(ItemMapper::toItemDTO)
+        Map<Long, List<Comment>> commentsByItem = getCommentsMap(extractItemIds(items));
+
+        return items.stream()
+                .map(item -> ItemMapper.toItemDTO(
+                        item,
+                        null,
+                        commentsByItem.getOrDefault(item.getId(), Collections.emptyList()),
+                        null,
+                        null))
                 .collect(Collectors.toList());
     }
 }
