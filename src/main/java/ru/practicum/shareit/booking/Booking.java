@@ -1,7 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
