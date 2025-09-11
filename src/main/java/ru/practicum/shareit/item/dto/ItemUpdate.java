@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import ru.practicum.shareit.booking.dto.BookingTimeDTO;
-import ru.practicum.shareit.item.comment.Comment;
+import ru.practicum.shareit.item.model.Comment;
 
 import java.util.List;
 

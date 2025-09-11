@@ -4,11 +4,10 @@ import jakarta.validation.Valid;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import ru.practicum.shareit.item.comment.CommentDTO;
-import ru.practicum.shareit.item.comment.CommentService;
+import ru.practicum.shareit.item.dto.CommentDTO;
+import ru.practicum.shareit.item.service.CommentService;
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdate;
 import ru.practicum.shareit.item.service.ItemService;

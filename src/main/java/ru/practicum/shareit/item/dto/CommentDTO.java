@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.comment;
+package ru.practicum.shareit.item.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

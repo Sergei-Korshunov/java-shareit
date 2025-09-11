@@ -1,14 +1,17 @@
-package ru.practicum.shareit.item.comment;
+package ru.practicum.shareit.item.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BookingException;
+import ru.practicum.shareit.item.CommentRepository;
+import ru.practicum.shareit.item.dto.CommentDTO;
 import ru.practicum.shareit.item.dto.ItemDTO;
+import ru.practicum.shareit.item.mappers.CommentMapper;
 import ru.practicum.shareit.item.mappers.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDTO;
 import ru.practicum.shareit.user.mappers.UserMapper;

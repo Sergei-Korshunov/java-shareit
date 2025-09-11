@@ -11,7 +11,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import ru.practicum.shareit.booking.dto.BookingTimeDTO;
-import ru.practicum.shareit.item.comment.CommentDTO;
 
 import java.util.List;
 
