@@ -1,25 +1,22 @@
 package ru.practicum.shareit.booking.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.item.dto.ItemDTO;
-import ru.practicum.shareit.user.dto.UserDTO;
 
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class BookingDTO {
+@AllArgsConstructor
+public class BookingRequestDTO {
     @PositiveOrZero(message = "ID не должен быть отрицательным числом")
     private Long id;
 
@@ -33,13 +30,13 @@ public class BookingDTO {
     @JsonProperty(value = "end")
     private LocalDateTime endTime;
 
-    @NotNull
-    private ItemDTO item;
+    @PositiveOrZero(message = "ID не должен быть отрицательным числом")
+    @NotNull(message = "ID вещи не должен быть пустым")
+    private Long itemId;
 
-    @NotNull
+    @PositiveOrZero(message = "ID не должен быть отрицательным числом")
     @JsonProperty(value = "booker")
-    private UserDTO user;
+    private Long requestUserId;
 
-    @NotNull(message = "Статус бронирования должен быть указан")
     private BookingStatus status;
 }

@@ -8,6 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import ru.practicum.shareit.booking.dto.BookingTimeDTO;
+import ru.practicum.shareit.item.model.Comment;
+
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,4 +29,10 @@ public class ItemUpdate {
 
     @NotNull(message = "Статус аренды должен быть указан")
     private Boolean available;
+
+    private List<Comment> comments;
+
+    private BookingTimeDTO lastBookingTime;
+
+    private BookingTimeDTO nextBookingTime;
 }
