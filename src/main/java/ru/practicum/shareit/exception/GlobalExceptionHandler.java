@@ -60,4 +60,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorMessage(exception.getMessage()));
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(CommentException.class)
+    public ResponseEntity<ErrorMessage> commentException(CommentException exception) {
+        log.error(exception.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
 }

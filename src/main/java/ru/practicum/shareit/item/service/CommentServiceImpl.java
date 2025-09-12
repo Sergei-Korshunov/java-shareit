@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BookingException;
+import ru.practicum.shareit.exception.CommentException;
 import ru.practicum.shareit.item.CommentRepository;
 import ru.practicum.shareit.item.dto.CommentDTO;
 import ru.practicum.shareit.item.dto.ItemDTO;
@@ -39,9 +40,11 @@ public class CommentServiceImpl implements CommentService {
         ItemDTO itemDTO = itemService.getItemById(userId, itemId);
         UserDTO userDTO = userService.getUserById(userId);
 
-        if (!bookingRepository.existsByUserIdAndItemIdAndEndTimeBefore(userId, itemId, LocalDateTime.now())) {
-            throw new BookingException("Пользователь не брал эту вещь в аренду");
-        }
+        if (!bookingRepository.existsByUserIdAndItemIdAndEndTimeBefore(userId, itemId, LocalDateTime.now()))
+            throw new BookingException("Пользователь не брал эту вещь в аренду.");
+
+        if (commentDTO.getContent() == null || commentDTO.getContent().isBlank())
+            throw new CommentException("Содержимое комментария не должно быть пустым.");
 
         User user = UserMapper.toUser(userDTO);
         Item item = ItemMapper.toItem(itemDTO, user);

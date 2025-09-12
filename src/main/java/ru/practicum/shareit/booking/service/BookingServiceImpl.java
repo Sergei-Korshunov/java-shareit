@@ -45,6 +45,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDTO addRequestBooking(Long userId, BookingRequestDTO bookingRequestDTO) {
         UserDTO userDTO = userService.getUserById(userId);
+
+        if (!bookingRequestDTO.getStartTime().isBefore(bookingRequestDTO.getEndTime()))
+            throw new BookingException("Дата окончания бронирования должна быть позже, чем дата начала бронирования.");
+
         ItemDTO itemDTO = itemService.getItemById(userId, bookingRequestDTO.getItemId());
 
         if (!itemDTO.getAvailable())
@@ -72,7 +76,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingException("Бронирование не встатусе ожидания.");
 
         if (!booking.getItem().getOwner().getId().equals(ownerId))
-            throw new BookingException("Подвердить бронирование может только владелец вещи.");
+            throw new BookingException("Подтвердить бронирование может только владелец вещи.");
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
 
@@ -84,8 +88,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDTO(updatedBooking, itemDTO, userDTO);
     }
 
-    @Override
-    public Booking getBookingById(Long bookingId) {
+    protected Booking getBookingById(Long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow(() ->
                 new NotFoundException(String.format("Бронирование с id - %d не найдено.", bookingId)));
     }
