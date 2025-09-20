@@ -29,30 +29,6 @@ public class GlobalExceptionHandler {
                 .body(new ErrorMessage(exception.getMessage()));
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorMessage> notFoundException(NotFoundException exception) {
-        log.error(exception.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorMessage(exception.getMessage()));
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(EmailException.class)
-    public ResponseEntity<ErrorMessage> emailException(EmailException exception) {
-        log.error(exception.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorMessage(exception.getMessage()));
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(CoincidenceException.class)
-    public ResponseEntity<ErrorMessage> coincidenceException(CoincidenceException exception) {
-        log.error(exception.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorMessage(exception.getMessage()));
-    }
-
     @org.springframework.web.bind.annotation.ExceptionHandler(BookingException.class)
     public ResponseEntity<ErrorMessage> bookingException(BookingException exception) {
         log.error(exception.getMessage());
