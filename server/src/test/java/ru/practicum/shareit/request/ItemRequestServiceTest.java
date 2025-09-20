@@ -51,7 +51,7 @@ class ItemRequestServiceTest {
 
     @Test
     void getUsersAllRequests() {
-        List<ItemResponseDTO> listItemResponseDTO = itemRequestService.getUsersAllRequests(4L);
-        assertThat(listItemResponseDTO.size(), equalTo(1));
+        List<ItemResponseDTO> listItemResponseDTO = itemRequestService.getUsersAllRequests(4L, 0, 10);
+        assertThat(listItemResponseDTO.size(), equalTo(4));
     }
 }

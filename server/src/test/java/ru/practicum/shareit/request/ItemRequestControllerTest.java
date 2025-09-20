@@ -80,7 +80,7 @@ public class ItemRequestControllerTest {
 
     @Test
     void getUsersAllRequests() throws Exception {
-        when(itemRequestService.getUsersAllRequests(1L))
+        when(itemRequestService.getUsersAllRequests(1L, 0, 10))
                 .thenReturn(List.of(itemRequestDTOResponse));
 
         mvc.perform(get("/requests/all")

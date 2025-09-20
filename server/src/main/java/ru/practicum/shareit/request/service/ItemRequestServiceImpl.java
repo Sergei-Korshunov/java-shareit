@@ -1,6 +1,8 @@
 package ru.practicum.shareit.request.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.practicum.shareit.exception.NotFoundException;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ItemRequestServiceImpl implements ItemRequestService {
+
     private final ItemRequestRepository itemRequestRepository;
     private final UserService userService;
     private final ItemRepository itemRepository;
@@ -65,9 +68,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemResponseDTO> getUsersAllRequests(Long userId) {
+    public List<ItemResponseDTO> getUsersAllRequests(Long userId, int from, int pageSize) {
         userService.getUserById(userId);
-        List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterIdOrderByTimeCreateDesc(userId);
+
+        Pageable page = PageRequest.of(from / pageSize, pageSize);
+        List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterIdNotOrderByTimeCreateDesc(userId, page);
 
         List<Long> requestIds = itemRequests.stream()
                 .map(ItemRequest::getId)

@@ -39,9 +39,11 @@ public class ItemRequestController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(
-            @Positive @RequestHeader("X-Sharer-User-Id") Long userId) {
+            @Positive @RequestHeader("X-Sharer-User-Id") Long userId,
+            @Positive @RequestParam(defaultValue = "0") int from,
+            @Positive @RequestParam(defaultValue = "10") int pageSize) {
 
-        return itemRequestClient.getAllRequests(userId);
+        return itemRequestClient.getAllRequests(userId, from, pageSize);
     }
 
     @ResponseStatus(HttpStatus.OK)
