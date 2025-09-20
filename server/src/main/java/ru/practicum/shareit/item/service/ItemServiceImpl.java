@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingTimeDTO;
@@ -33,7 +34,11 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRequestService itemRequestService;
 
     @Autowired
-    public ItemServiceImpl(ItemRepository itemRepository, UserService userService, BookingRepository bookingRepository, CommentRepository commentRepository, ItemRequestService itemRequestService) {
+    public ItemServiceImpl(ItemRepository itemRepository,
+                           UserService userService,
+                           BookingRepository bookingRepository,
+                           CommentRepository commentRepository,
+                           ItemRequestService itemRequestService) {
         this.itemRepository = itemRepository;
         this.userService = userService;
         this.bookingRepository = bookingRepository;
@@ -195,9 +200,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDTO> search(String searchText) {
-        if (searchText == null || searchText.isBlank())
-            return Collections.emptyList();
-
         List<Item> items = itemRepository.searchAvailableItems(searchText);
 
         if (items.isEmpty()) return Collections.emptyList();

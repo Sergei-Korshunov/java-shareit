@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+
 import ru.practicum.shareit.booking.dto.BookingRequestDTO;
 import ru.practicum.shareit.booking.dto.BookingState;
+
+import ru.practicum.shareit.exception.BookingException;
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -24,9 +27,12 @@ public class BookingController {
 	@PostMapping
 	public ResponseEntity<Object> createBooking(
 			@Positive @RequestHeader(value = "X-Sharer-User-Id") Long userId,
-			@RequestBody @Valid BookingRequestDTO booking) {
+			@RequestBody @Valid BookingRequestDTO bookingRequestDTO) {
 
-		return bookingClient.createBooking(userId, booking);
+		if (!bookingRequestDTO.getStartTime().isBefore(bookingRequestDTO.getEndTime()))
+			throw new BookingException("Дата окончания бронирования должна быть позже, чем дата начала бронирования.");
+
+		return bookingClient.createBooking(userId, bookingRequestDTO);
 	}
 
 	@ResponseStatus(HttpStatus.OK)

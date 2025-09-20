@@ -9,9 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import ru.practicum.shareit.exception.CommentException;
 import ru.practicum.shareit.item.dto.CommentDTO;
 import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemUpdateDTO;
+
+import java.util.Collections;
 
 @RestController
 @RequestMapping(path = "/items")
@@ -64,7 +67,7 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam String text) {
         if (!StringUtils.hasText(text))
-            return null;
+            return ResponseEntity.ok(Collections.emptyList());
 
         return itemClient.search(text);
     }
@@ -74,8 +77,11 @@ public class ItemController {
     public ResponseEntity<Object> addComment(
             @Positive @RequestHeader("X-Sharer-User-Id") Long userId,
             @Positive @PathVariable Long itemId,
-            @RequestBody CommentDTO commentDto) {
+            @RequestBody CommentDTO commentDTO) {
 
-        return itemClient.addComment(userId, itemId, commentDto);
+        if (commentDTO.getContent() == null || commentDTO.getContent().isBlank())
+            throw new CommentException("Содержимое комментария не должно быть пустым.");
+
+        return itemClient.addComment(userId, itemId, commentDTO);
     }
 }

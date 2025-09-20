@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingState;
@@ -36,7 +37,10 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRequestService itemRequestService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, UserService userService, ItemService itemService, ItemRequestService itemRequestService) {
+    public BookingServiceImpl(BookingRepository bookingRepository,
+                              UserService userService,
+                              ItemService itemService,
+                              ItemRequestService itemRequestService) {
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.itemService = itemService;
@@ -46,9 +50,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDTO addRequestBooking(Long userId, BookingRequestDTO bookingRequestDTO) {
         UserDTO userDTO = userService.getUserById(userId);
-
-        if (!bookingRequestDTO.getStartTime().isBefore(bookingRequestDTO.getEndTime()))
-            throw new BookingException("Дата окончания бронирования должна быть позже, чем дата начала бронирования.");
 
         ItemDTO itemDTO = itemService.getItemById(userId, bookingRequestDTO.getItemId());
 

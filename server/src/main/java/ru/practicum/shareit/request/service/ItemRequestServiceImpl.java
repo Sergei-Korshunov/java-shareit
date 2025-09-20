@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -25,7 +26,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRepository itemRepository;
 
     @Autowired
-    public ItemRequestServiceImpl(ItemRequestRepository itemRequestRepository, UserService userService, ItemRepository itemRepository) {
+    public ItemRequestServiceImpl(ItemRequestRepository itemRequestRepository,
+                                  UserService userService,
+                                  ItemRepository itemRepository) {
         this.itemRequestRepository = itemRequestRepository;
         this.userService = userService;
         this.itemRepository = itemRepository;

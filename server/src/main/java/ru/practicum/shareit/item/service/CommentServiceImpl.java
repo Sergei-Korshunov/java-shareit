@@ -2,9 +2,9 @@ package ru.practicum.shareit.item.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BookingException;
-import ru.practicum.shareit.exception.CommentException;
 import ru.practicum.shareit.item.CommentRepository;
 import ru.practicum.shareit.item.dto.CommentDTO;
 import ru.practicum.shareit.item.dto.ItemDTO;
@@ -30,7 +30,11 @@ public class CommentServiceImpl implements CommentService {
     private final ItemRequestService itemRequestService;
 
     @Autowired
-    public CommentServiceImpl(CommentRepository commentRepository, ItemService itemService, UserService userService, BookingRepository bookingRepository, ItemRequestService itemRequestService) {
+    public CommentServiceImpl(CommentRepository commentRepository,
+                              ItemService itemService,
+                              UserService userService,
+                              BookingRepository bookingRepository,
+                              ItemRequestService itemRequestService) {
         this.commentRepository = commentRepository;
         this.itemService = itemService;
         this.userService = userService;
@@ -46,10 +50,8 @@ public class CommentServiceImpl implements CommentService {
         if (!bookingRepository.existsByUserIdAndItemIdAndEndTimeBefore(userId, itemId, LocalDateTime.now()))
             throw new BookingException("Пользователь не брал эту вещь в аренду.");
 
-        if (commentDTO.getContent() == null || commentDTO.getContent().isBlank())
-            throw new CommentException("Содержимое комментария не должно быть пустым.");
-
         User user = UserMapper.toUser(userDTO);
+
         ItemRequest itemRequest = null;
         Long requestId = itemDTO.getRequestId();
         if (requestId != null) {
